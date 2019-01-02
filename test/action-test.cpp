@@ -55,3 +55,27 @@ TEST_CASE( "Move needs to swap between two orbs.", "[move]" ) {
     REQUIRE(post_b[0][1] == Orb::light);
     REQUIRE(post_b[0][0] == Orb::dark);
 }
+
+TEST_CASE( "Populate will only populate 2 things in corners.", "[populate]" ) {
+    std::string s;
+    for(int i = 0; i < consts::NUM_ROWS; i++){
+        for(int j = 0; j < consts::NUM_COLS; j++){
+            s.push_back(
+                    detail::get_value(consts::ORB_TO_CHAR, Orb::empty)
+            );
+        }
+    }
+    Board b = initialize(s);
+
+    {
+        Coord c {consts::NUM_ROWS - 1, consts::NUM_COLS - 1};
+        auto v = populate(b, c);
+        REQUIRE( v.size() == 2 );
+    }
+
+    {
+        Coord c {consts::NUM_ROWS / 2, consts::NUM_COLS / 2};
+        auto v = populate(b, c);
+        REQUIRE( v.size() == 4 );
+    }
+}
