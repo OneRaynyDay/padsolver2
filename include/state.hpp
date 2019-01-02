@@ -61,6 +61,7 @@ static const std::map<Orb, char> ORB_TO_CHAR = {
     {Orb::blue,  'b'},
     {Orb::green, 'g'},
     {Orb::heart, 'h'},
+    {Orb::empty, 'e'},
 };
 
 static const std::map<char, Orb> CHAR_TO_ORB = {
@@ -70,11 +71,12 @@ static const std::map<char, Orb> CHAR_TO_ORB = {
     {'g',   Orb::green},
     {'b',   Orb::blue},
     {'h',   Orb::heart},
+    {'e',   Orb::empty},
 };
 
 } // namespace consts
 
-using Board = std::array< std::array<Orb, consts::NUM_ROWS>, consts::NUM_COLS >;
+using Board = std::array< std::array<Orb, consts::NUM_COLS>, consts::NUM_ROWS >;
 
 // A player's cursor will be a 2d tuple of <row, col>
 using Coord = std::pair<int, int>;
