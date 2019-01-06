@@ -40,7 +40,7 @@ Coord change_coords(const Coord& coord, Action action_enum) noexcept {
 // 0 - no errors
 // 1 - row out of bound
 // 2 - column out of bound
-int check_move(const Coord& coord) noexcept {
+inline int check_move(const Coord& coord) noexcept {
     if (coord.first < 0 || coord.first >= consts::NUM_ROWS) 
         return 1;
 
