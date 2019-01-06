@@ -22,6 +22,17 @@ TEST_CASE( "Initialize state correctly (from string).", "[state]" ) {
     }
 }
 
+TEST_CASE( "Opposites are indeed opposites.", "[opposite_actions]" ) {
+    REQUIRE( opposite_actions( Action::up, Action::down ) );
+    REQUIRE( !opposite_actions( Action::up, Action::right ) );
+    REQUIRE( !opposite_actions( Action::up, Action::left ) );
+    REQUIRE( !opposite_actions( Action::up, Action::up ) );
+    REQUIRE( opposite_actions( Action::right, Action::left ) );
+    REQUIRE( !opposite_actions( Action::right, Action::right ) );
+    REQUIRE( !opposite_actions( Action::right, Action::down ) );
+    REQUIRE( !opposite_actions( Action::right, Action::up ) );
+}
+
 TEST_CASE( "Change coordinates (only on proper coordinates).", "[change_coords]") {
     REQUIRE( change_coords( {0, 0}, Action::down ) == Coord {1, 0} );
     REQUIRE( change_coords( {1, 0}, Action::up ) == Coord {0, 0} );

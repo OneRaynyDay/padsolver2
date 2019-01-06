@@ -45,6 +45,9 @@ static const int NUM_COLS = 6;
 // Need at least MIN_ORB_COMBO to make a combo in any direction.
 static const int MIN_ORB_COMBO = 3;
 
+// Since we can have up to 10 combos, use this as a constant
+static const int MAX_COMBOS = (NUM_ROWS * NUM_COLS) / MIN_ORB_COMBO;
+
 // Because one cannot simply cast from int to enum so easily, we must make a static array to explicitly map
 // the actions to their enums.
 static const std::array<Action, 4> ACTIONS = {
@@ -72,6 +75,13 @@ static const std::map<char, Orb> CHAR_TO_ORB = {
     {'b',   Orb::blue},
     {'h',   Orb::heart},
     {'e',   Orb::empty},
+};
+
+static const std::map<Action, char> ACTION_TO_CHAR = {
+    {Action::up,    'u'},
+    {Action::down,  'd'},
+    {Action::left,  'l'},
+    {Action::right, 'r'},
 };
 
 } // namespace consts
