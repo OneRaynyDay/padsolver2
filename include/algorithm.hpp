@@ -9,17 +9,12 @@
 #endif
 
 #include <sstream>
-#include <thread>
+#include "thread_pool.hpp"
 #include "action.hpp"
 #include "state.hpp"
 #include "score.hpp"
 
 namespace pad {
-
-// portable C++11 method of finding how many logical cores
-// the current system has. We'll spin up this many threads and not more
-// to prevent unnecessary overhead of thread creations.
-static const unsigned int NUM_THREADS = std::thread::hardware_concurrency(); 
 
 // Retrieves information on how many orbs of each type there are.
 inline std::map<Orb, int> get_freq_orbs(const Board& b) {
@@ -227,9 +222,32 @@ SolutionMap find_combos(const Board& b, int max_depth = MAX_DEPTH, bool smart_po
 
     std::vector<Coord> starting_points = get_starting_points(b, smart_populate, num_to_populate);
 
-#ifndef MULTITHREAD
+#ifdef MULTITHREAD
+    std::vector<std::future<SolutionMap>> results;
+    int num_pts = starting_points.size();
+    results.reserve(num_pts);
+    ThreadPool pool(num_pts);
     for(const Coord& c : starting_points) {
-
+        results.push_back( pool.enqueue( [](const Board& b, const Coord& c, int max_combos, int max_depth) {
+                SolutionMap map;
+                // Fill the map with MAX_COMBOS entries all with origins at i,j
+                for(int k = 0; k < consts::MAX_COMBOS + 1; k++) {
+                    map.emplace_back(c);
+                }
+                dfs_find(b, c, max_combos, map, max_depth);
+                return map;
+            }, b, c, max_combos, max_depth)
+        );
+    }
+    for(auto& f : results) {
+        auto map = f.get();
+        for(int k = 0; k < consts::MAX_COMBOS + 1; k++) {
+            // Invalid move, 0 moves is not allowed.
+            if(!map[k].size())
+                continue;
+            if(map[k].size() < aggregate[k].size() || aggregate[k].size() == 0)
+                aggregate[k] = map[k];
+        }
     }
 #else
     for(const Coord& c : starting_points) {
