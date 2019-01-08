@@ -41,6 +41,7 @@ namespace consts {
 // A board is always static 5x6:
 static const int NUM_ROWS = 5; 
 static const int NUM_COLS = 6;
+static const int NUM_ORBS = NUM_ROWS * NUM_COLS;
 
 // Need at least MIN_ORB_COMBO to make a combo in any direction.
 static const int MIN_ORB_COMBO = 3;

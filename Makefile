@@ -1,6 +1,6 @@
 CC=g++-8
 INCLUDES=-I${PWD}/include
-FLAGS=-std=c++17 -ffast-math
+FLAGS=-std=c++17 -ffast-math -O3
 
 run: main
 	build/main

@@ -54,7 +54,7 @@ TEST_CASE( "Compute scores (pre-skyfalls) correctly.", "[score]" ) {
         remove_match(b, mask, Coord {1, 3});
         REQUIRE((mask[1][3] && mask[1][4] && mask[1][5]));
     }
-    
+
     SECTION( "Run the entire thing through all coordinates" ) {
         Board b = initialize(COMPLICATED_BOARD);
         ComboMask mask = detail::init_mask();
@@ -84,27 +84,37 @@ TEST_CASE( "Compute scores (pre-skyfalls) correctly.", "[score]" ) {
 }
 
 TEST_CASE( "Simulate skyfall", "[score]") {
-    Board b = initialize(COMPLICATED_BOARD);
-    ComboMask mask = detail::init_mask();
-    for(int i = 0; i < consts::NUM_ROWS; i++) {
-        for(int j = 0; j < consts::NUM_COLS; j++) {
-            remove_match(b, mask, Coord {i, j});
+    SECTION( "use complicated board" ) {
+        Board b = initialize(COMPLICATED_BOARD);
+        ComboMask mask = detail::init_mask();
+        for(int i = 0; i < consts::NUM_ROWS; i++) {
+            for(int j = 0; j < consts::NUM_COLS; j++) {
+                remove_match(b, mask, Coord {i, j});
+            }
         }
+        REQUIRE(clear_combos(b, mask) == 4);
+        skyfall(b);
+        // Do some spot checking
+        for(int i = 0; i < 3; i++){
+            REQUIRE( b[i][0] == Orb::empty );
+        }
+        REQUIRE( b[3][0] != Orb::empty );
+        for(int i = 0; i < 4; i++){
+            REQUIRE( b[i][3] == Orb::empty );
+        }
+        REQUIRE( b[4][3] != Orb::empty );
     }
-    REQUIRE(clear_combos(b, mask) == 4);
-    skyfall(b);
-    // Do some spot checking
-    for(int i = 0; i < 3; i++){
-        REQUIRE( b[i][0] == Orb::empty );
-    } 
-    REQUIRE( b[3][0] != Orb::empty );
-    for(int i = 0; i < 4; i++){
-        REQUIRE( b[i][3] == Orb::empty );
-    }
-    REQUIRE( b[4][3] != Orb::empty );
 }
 
 TEST_CASE( "Get total combo of boards", "[score]") {
-    Board b = initialize(COMPLICATED_BOARD);
-    REQUIRE(score(b) == 7);
+    SECTION( "Use complicated board" ) {
+        Board b = initialize(COMPLICATED_BOARD);
+        REQUIRE(score(b) == 7);
+    }
+    SECTION( "buggy board" ) {
+        static const std::string BUGGY_BOARD_1 = 
+            "BHLHHDBHDHHHBHLLLHDDRBBHRRGGGB";
+        Board b = initialize(BUGGY_BOARD_1);
+        REQUIRE(score(b) == 8);
+    }
 }

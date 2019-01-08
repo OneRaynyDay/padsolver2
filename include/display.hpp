@@ -4,7 +4,6 @@
 #include <sstream>
 #include "state.hpp"
 #include "action.hpp"
-#include "algorithm.hpp"
 #include "detail.hpp"
 
 // A header file for analyzing the contents of a board

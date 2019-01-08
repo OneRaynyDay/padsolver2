@@ -7,6 +7,7 @@
 #include "display.hpp"
 #endif
 
+#include <cassert>
 #include <vector>
 #include "detail.hpp"
 #include "state.hpp"
@@ -40,7 +41,7 @@ void remove_match(Board& b, detail::ComboMask& mask, const Coord& coord) {
     const Orb& o = b[row][col];
 
     // There is no extra match here. It's already been matched.
-    if(mask[row][col] || o == Orb::empty) {
+    if(o == Orb::empty) {
         return;
     }
 
@@ -142,9 +143,12 @@ int score(Board& b) {
                 remove_match(b, mask, Coord {i, j});
             }
         } 
+        // std::cout << display::board_string(b) << std::endl;
         combo = clear_combos(b, mask); 
+        // std::cout << "and then after clearing combos : \n" << display::board_string(b) << std::endl;
         score += combo;
         skyfall(b);
+        // std::cout << "and then after skyfalls : \n" << display::board_string(b) << std::endl;
     } while(combo);
     return score;  
 }
