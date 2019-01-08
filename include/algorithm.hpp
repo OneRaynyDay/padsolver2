@@ -1,6 +1,7 @@
 #pragma once
 
 #define DEBUG
+#define MULTITHREAD
 
 #ifdef DEBUG
 #include <iostream>
@@ -8,11 +9,17 @@
 #endif
 
 #include <sstream>
+#include <thread>
 #include "action.hpp"
 #include "state.hpp"
 #include "score.hpp"
 
 namespace pad {
+
+// portable C++11 method of finding how many logical cores
+// the current system has. We'll spin up this many threads and not more
+// to prevent unnecessary overhead of thread creations.
+static const unsigned int NUM_THREADS = std::thread::hardware_concurrency(); 
 
 // Retrieves information on how many orbs of each type there are.
 inline std::map<Orb, int> get_freq_orbs(const Board& b) {
@@ -94,7 +101,7 @@ static const int MAX_DEPTH = 15; // 10 moves max
 // We want our solutions to be saved in a simple form: # of combos -> actions
 using SolutionMap = std::vector<Solution>;
 
-// Only populate 4 starting spots.
+// It is recommended to only populate 5 starting spots.
 static const int NUM_TO_POPULATE = 5;
 
 // This distance is the manhattan distance.
@@ -134,14 +141,14 @@ std::vector<std::pair<Coord, int>> distance_from_others(const Board& b) {
  * 1. Pick orbs that are rly far away from the other orbs
  * 2. Choose orbs that can actually be made into combos
  */
-std::array<Coord, consts::NUM_ORBS> populate_coords(const Board& b, int num_to_populate = NUM_TO_POPULATE) {
+std::array<Coord, consts::NUM_ORBS> populate_favorable_coords(const Board& b, int num_to_populate) {
     std::array<Coord, consts::NUM_ORBS> top;
     auto freq = get_freq_orbs(b);
     auto candidates = distance_from_others(b);
     std::sort(candidates.begin(), candidates.end(), [] (const auto& a, const auto& b) -> bool {
         return a.second > b.second;
     });
-    for(int i = 0; i < num_to_populate; i++) {
+    for(int i = 0; i < std::min(num_to_populate, consts::NUM_ORBS); i++) {
         top[i] = candidates[i].first;
     }
     return top;
@@ -189,18 +196,13 @@ inline void dfs_find(const Board& b, const Coord& c, const int max_combos, Solut
     dfs(b, c, max_combos, map, s, Action::up, 0, max_depth);
 }
 
-SolutionMap find_combos(const Board& b, int max_depth = MAX_DEPTH, bool smart_populate = false) {
-    int max_combos = max_combos_possible(b);
-
-    SolutionMap aggregate;
-    for(int k = 0; k < consts::MAX_COMBOS + 1; k++) {
-        aggregate.emplace_back(Coord {0, 0});
-    }
-
+// IMPORTANT: We don't care about num_to_populate if it's not smart.
+inline std::vector<Coord> get_starting_points(const Board& b, bool smart_populate, int num_to_populate) {
     std::vector<Coord> starting_points;
     if(smart_populate) { 
-        auto coords = populate_coords(b);
-        for(const auto& c : coords) {
+        auto coords = populate_favorable_coords(b, num_to_populate);
+        for(int i = 0; i < num_to_populate; i++) {
+            const auto& c = coords[i];
             starting_points.push_back(c);
         }
     }
@@ -211,8 +213,25 @@ SolutionMap find_combos(const Board& b, int max_depth = MAX_DEPTH, bool smart_po
             }
         }
     }
-    // TODO: So far we populate all possible origins, but it is a much better idea
-    // to start with a select few, i.e. 4 or 5. This requires a good heuristic.
+    return starting_points;
+}
+
+// IMPORTANT: We don't care about num_to_populate if it's not smart.
+SolutionMap find_combos(const Board& b, int max_depth = MAX_DEPTH, bool smart_populate = false, int num_to_populate = NUM_TO_POPULATE) {
+    int max_combos = max_combos_possible(b);
+
+    SolutionMap aggregate;
+    for(int k = 0; k < consts::MAX_COMBOS + 1; k++) {
+        aggregate.emplace_back(Coord {0, 0});
+    }
+
+    std::vector<Coord> starting_points = get_starting_points(b, smart_populate, num_to_populate);
+
+#ifndef MULTITHREAD
+    for(const Coord& c : starting_points) {
+
+    }
+#else
     for(const Coord& c : starting_points) {
         SolutionMap map;
         // Fill the map with MAX_COMBOS entries all with origins at i,j
@@ -228,6 +247,7 @@ SolutionMap find_combos(const Board& b, int max_depth = MAX_DEPTH, bool smart_po
                 aggregate[k] = map[k];
         }
     }
+#endif
     return aggregate;
 }
 

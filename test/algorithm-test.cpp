@@ -38,7 +38,7 @@ TEST_CASE( "Test DFS algorithm.", "[dfs]" ) {
             REQUIRE(candidates[3].second == 1);
             REQUIRE(candidates[consts::NUM_ROWS * consts::NUM_COLS - 1].second == 5);
             // After populating:
-            auto arr = populate_coords(b);
+            auto arr = populate_favorable_coords(b, NUM_TO_POPULATE);
             std::set<Coord> s(arr.begin(), arr.end());
             REQUIRE(s.find({4, 3}) != s.end());
             REQUIRE(s.find({4, 5}) != s.end());
@@ -60,7 +60,7 @@ TEST_CASE( "Test DFS algorithm.", "[dfs]" ) {
 
 TEST_CASE( "run from all coordinates.", "[dfs]" ) {
     // http://pad.dawnglare.com/?s=DnAuYk0
-    static const std::string COMPLICATED_BOARD = 
+    static const std::string COMPLICATED_BOARD =
         "HRHGGHRDGHLBLRRGHHDRBGDRRHRDBR";
     using namespace dfs;
     SECTION( "running max_combo on this board should yield 8" ) {
@@ -75,3 +75,19 @@ TEST_CASE( "run from all coordinates.", "[dfs]" ) {
     }
 }
 
+TEST_CASE( "run from a smart-select group of coordinates.", "[dfs]" ) {
+    // http://pad.dawnglare.com/?s=DnAuYk0
+    static const std::string COMPLICATED_BOARD = 
+        "HRHGGHRDGHLBLRRGHHDRBGDRRHRDBR";
+    using namespace dfs;
+    SECTION( "running max_combo on this board should yield 8" ) {
+        Board b = initialize(COMPLICATED_BOARD);
+        REQUIRE(max_combos_possible(b) == 8);
+    }
+    SECTION( "runnning entire DFS" ) {
+        SolutionMap map = find_combos(initialize(COMPLICATED_BOARD), 15, true);
+        // Require that we couldnt find a 10-combo, since it's impossible.
+        REQUIRE(map[10].size() == 0);
+        std::cout << display::analyze_combos(map) << std::endl;
+    }
+}
